@@ -1,98 +1,91 @@
-/* General Page Styling */
+
+/* ===== Velvet Room Visual Theme ===== */
 body {
-    background: #2d3b5a; /* Dark blue background */
-    color: #f8f8f8;
+    background-color: #0c0c1e;
+    color: #d6e1ff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding-top: 40px;
 }
 
-/* Header */
-header {
-    text-align: center;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    font-size: 24px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
+h1, h2, h3 {
+    color: #9dcfff;
+    text-shadow: 2px 2px 5px #000;
+    margin-bottom: 25px;
 }
 
-/* Navigation */
-nav {
-    text-align: center;
-    margin: 20px 0;
+.container {
+    width: 90%;
+    max-width: 960px;
+    margin: auto;
+    background-color: #1e1a48;
+    border: 2px solid #2e2473;
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(23, 43, 120, 0.7);
+    padding: 30px;
 }
 
-nav button {
-    background: linear-gradient(90deg, #2d3b5a, #4c6ea5);
-    color: #f8f8f8;
-    border: none;
-    padding: 10px 20px;
-    margin: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: 0.3s;
-}
-
-nav button:hover {
-    background: linear-gradient(90deg, #4c6ea5, #6b8ed6);
-}
-
-/* Tabs */
-.tab {
-    display: none;
-    text-align: center;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 20px;
-    margin: 20px;
+.card {
+    background: #26235c;
+    border: 1px solid #3a3696;
     border-radius: 10px;
+    margin-bottom: 30px;
+    padding: 25px;
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.6);
 }
 
-.active {
-    display: block;
-}
-
-/* Progress Bar */
-#progress-container {
-    display: none;
-    width: 80%;
-    background: rgba(255, 255, 255, 0.2);
-    margin: 20px auto;
+input[type="file"], button, .btn {
+    padding: 10px 16px;
     border-radius: 5px;
-    overflow: hidden;
-}
-
-#progress-bar {
-    width: 0%;
-    height: 20px;
-    background: #4c6ea5;
-}
-
-/* Summary & Figures */
-#summary-text, #figures-container {
-    font-size: 18px;
-    padding: 15px;
-}
-
-#figures-container img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.2);
-}
-
-/* Download Button */
-#download-button button {
-    background: #f8b400;
-    color: black;
     border: none;
-    padding: 10px 15px;
-    font-size: 16px;
+    background-color: #3a5be0;
+    color: #f0f8ff;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(58, 91, 224, 0.5);
+}
+
+input[type="file"]:hover, button:hover, .btn:hover {
+    background-color: #2a46ba;
     cursor: pointer;
-    border-radius: 5px;
+    box-shadow: 0 0 16px rgba(58, 91, 224, 0.8);
+}
+
+pre {
+    background-color: #161339;
+    color: #cfd8ff;
+    border-left: 4px solid #3a5be0;
+    padding: 20px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.6);
+    overflow-x: auto;
+}
+
+.nav-tabs .nav-link {
+    background-color: #2e2473;
+    border-color: #1e1a48;
+    color: #b5cfff;
+    transition: all 0.2s ease;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #3a5be0;
+    color: #ffffff;
+    font-weight: bold;
+    box-shadow: inset 0 0 8px rgba(255,255,255,0.2);
+}
+
+.tab-pane {
     margin-top: 20px;
-    transition: 0.3s;
 }
 
-#download-button button:hover {
-    background: #ffd700;
+/* Links */
+a {
+    color: #9dcfff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }
