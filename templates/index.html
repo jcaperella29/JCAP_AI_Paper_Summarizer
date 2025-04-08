@@ -1,51 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JCAP AI Paper Summarizer</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script defer src="{{ url_for('static', filename='script.js') }}"></script>
+    <title>Upload PDF</title>
 </head>
-<body>
-    <header>
-        <h1>JCAP AI Paper Summarizer</h1>
-    </header>
-
-    <nav>
-        <button onclick="showTab('upload-tab')">Upload</button>
-        <button onclick="showTab('summary-tab')">Summaries</button>
-        <button onclick="showTab('figures-tab')">Figures</button>
-    </nav>
-
-    <!-- Upload Tab -->
-    <div id="upload-tab" class="tab active">
-        <h2>Upload a ZIP or PDF File</h2>
-        <form id="upload-form" enctype="multipart/form-data" onsubmit="event.preventDefault(); uploadFile();">
-            <input type="file" id="fileInput" name="file" required> <!-- ✅ Removed duplicate input -->
-            <button id="uploadButton" type="submit">Upload</button> <!-- ✅ Changed from onclick to type="submit" -->
-        </form>
-
-        <div id="progress-container">
-            <div id="progress-bar"></div>
-        </div>
-    </div>
-
-    <!-- Summaries Tab -->
-    <div id="summary-tab" class="tab" style="display: none;">
-        <h2>Summaries</h2>
-        <div id="summary-container">
-            <p>No summaries available. Upload a document first.</p>
-        </div>
-    </div>
-
-    <!-- Figures Tab -->
-    <div id="figures-tab" class="tab" style="display: none;">
-        <h2>Figures</h2>
-        <div id="figures-container">
-            <p>No figures extracted. Upload a document first.</p>
-        </div>
-    </div>
-
+<body style="font-family:sans-serif; text-align:center; padding-top:40px;">
+    <h1>🧠 JCAP AI PDF Summarizer</h1>
+    <form action="/summarize" method="POST" enctype="multipart/form-data">
+        <input type="file" name="pdf" accept=".pdf" required><br><br>
+        <button type="submit">🔍 Summarize</button>
+    </form>
 </body>
 </html>
