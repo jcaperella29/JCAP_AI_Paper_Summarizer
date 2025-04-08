@@ -1,134 +1,99 @@
-import fitz  # PyMuPDF for PDF processing
 import os
-import zipfile
+import fitz  # PyMuPDF
 import requests
-from flask import Flask, request, render_template, jsonify, send_file, send_from_directory
-from fpdf import FPDF
+import threading
+import concurrent.futures
+from flask import Flask, render_template, request, redirect, send_file, url_for, flash
 
-app = Flask(__name__, static_folder="static")
-
-UPLOAD_FOLDER = "uploads"
-SUMMARY_FOLDER = "summaries"
-FIGURE_FOLDER = "static/figures"
-
-# Ensure directories exist
+app = Flask(__name__)
+app.secret_key = 'your-secret-key'
+UPLOAD_FOLDER = 'uploads'
+SUMMARY_FOLDER = 'summaries'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(SUMMARY_FOLDER, exist_ok=True)
-os.makedirs(FIGURE_FOLDER, exist_ok=True)
 
-OLLAMA_URL = "https://ollama-service-hidden-waterfall-2124.fly.dev/api/generate"
+summary_cache = {}
 
-### 📌 Function to Summarize Text ###
-def summarize_text(text, chunk_size=3000):
-    """
-    Sends extracted text to Ollama for summarization.
-    Processes text in **chunks** to avoid timeouts.
-    """
-    text_chunks = [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
-    summaries = []
+def extract_text_chunks(pdf_path, chunk_size=3000):
+    doc = fitz.open(pdf_path)
+    text_chunks = []
+    current_text = ""
+    for page in doc:
+        current_text += page.get_text() + "\n"
+        if len(current_text) >= chunk_size:
+            text_chunks.append(current_text)
+            current_text = ""
+    if current_text:
+        text_chunks.append(current_text)
+    return text_chunks
 
-    for idx, chunk in enumerate(text_chunks):
-        print(f"📌 Processing chunk {idx + 1}/{len(text_chunks)}")  # Debugging log
+def summarize_chunks(chunks):
+    summary_sections = [""] * len(chunks)
+
+    def summarize_single(i, chunk):
+        prompt = f"Summarize this section of a research paper:\n\n{chunk}"
         try:
             response = requests.post(
-                OLLAMA_URL,
-                json={"model": "mistral", "prompt": f"Summarize this:\n{chunk}", "stream": False},
-                timeout=120
+                "http://localhost:11434/api/generate",
+                json={"model": "mistral", "prompt": prompt, "stream": False}
             )
-            response_json = response.json()
-            summary = response_json.get("response", "Error: No response from Ollama.")
-            summaries.append(summary)
-        except requests.exceptions.Timeout:
-            print(f"❌ Error: Ollama request timed out on chunk {idx + 1}")
-            summaries.append("Error: Timeout on this chunk.")
+            if response.status_code != 200:
+                raise Exception(f"HTTP {response.status_code}: {response.text}")
+            result = response.json().get("response", "").strip()
+            if not result:
+                result = "⚠️ No summary returned by model."
+        except Exception as e:
+            result = f"❌ Error: {e}"
 
-    return "\n\n".join(summaries)  # Combine summaries
+        section = f"\n🧠 === Summary of Section {i+1} ===\n{result}\n"
+        summary_sections[i] = section
 
-### 📌 Function to Extract Text from PDF ###
-def extract_text_from_pdf(pdf_path):
-    """
-    Extracts text from a PDF and returns it as a single string.
-    """
-    doc = fitz.open(pdf_path)
-    text = "\n".join([page.get_text("text") for page in doc])
-    return text.strip()
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [executor.submit(summarize_single, i, chunk) for i, chunk in enumerate(chunks)]
+        for f in concurrent.futures.as_completed(futures):
+            pass
 
-### 📌 Function to Generate Summary PDF ###
-def create_summary_pdf(summary_text, pdf_filename):
-    """
-    Saves a given summary text into a **downloadable** PDF file.
-    """
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_page()
-    pdf.set_font("Arial", style='B', size=16)
-    pdf.cell(200, 10, "Summary", ln=True, align='C')
-    pdf.ln(10)
-    pdf.set_font("Arial", size=12)
-    pdf.multi_cell(0, 10, summary_text)
-    pdf.output(pdf_filename)
+    return "".join(summary_sections)
 
-### 📌 Flask Routes ###
-@app.route("/")
+@app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template('index.html')
 
-# Serve static files (CSS, JS)
-@app.route("/static/<path:filename>")
-def static_files(filename):
-    return send_from_directory("static", filename)
+@app.route('/summarize', methods=['POST'])
+def summarize():
+    if 'pdf' not in request.files:
+        flash("No file uploaded.")
+        return redirect(url_for('index'))
 
-@app.route("/upload", methods=["POST"])
-def upload_file():
-    """
-    Handles uploaded PDF files, extracts text, summarizes it, and saves results.
-    """
-    print("✅ Received upload request")  # Debugging print
+    file = request.files['pdf']
+    if file.filename == '':
+        flash("No selected file.")
+        return redirect(url_for('index'))
 
-    if "file" not in request.files:
-        print("❌ Error: No file uploaded")
-        return jsonify({"error": "No file uploaded"}), 400
+    pdf_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(pdf_path)
 
-    file = request.files["file"]
-    if file.filename == "":
-        print("❌ Error: No selected file")
-        return jsonify({"error": "No selected file"}), 400
+    chunks = extract_text_chunks(pdf_path)
+    summary = summarize_chunks(chunks)
 
-    # Save file
-    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(filepath)
-    print(f"✅ File saved at {filepath}")
+    summary_file = os.path.join(SUMMARY_FOLDER, f"{os.path.splitext(file.filename)[0]}_summary.txt")
+    with open(summary_file, 'w', encoding='utf-8') as f:
+        f.write(summary)
 
-    # Extract text from PDF
-    extracted_text = extract_text_from_pdf(filepath)
-    if not extracted_text:
-        return jsonify({"error": "Could not extract text from PDF."}), 400
+    summary_cache['last_summary_file'] = summary_file
+    summary_cache['text'] = summary
 
-    # Summarize the extracted text
-    summary_text = summarize_text(extracted_text)
+    return render_template('summary.html', summary=summary)
 
-    # Save summary as PDF
-    pdf_name = file.filename.replace(".pdf", "_summary.pdf")
-    pdf_summary_path = os.path.join(SUMMARY_FOLDER, pdf_name)
-    create_summary_pdf(summary_text, pdf_summary_path)
+@app.route('/download')
+def download_summary():
+    summary_file = summary_cache.get('last_summary_file')
+    if summary_file and os.path.exists(summary_file):
+        return send_file(summary_file, as_attachment=True)
+    else:
+        flash("No summary available to download.")
+        return redirect(url_for('index'))
 
-    print("✅ Summary generated successfully")
+if __name__ == '__main__':
+    app.run(debug=True)
 
-    return jsonify({
-        "message": "File processed successfully",
-        "summary": summary_text,
-        "download_link": f"/download_summary/{pdf_name}"
-    })
-
-# API Endpoint: Download Summaries
-@app.route("/download_summary/<pdf_name>")
-def download_summary(pdf_name):
-    """
-    Allows users to download **individual** summary PDFs.
-    """
-    pdf_path = os.path.join(SUMMARY_FOLDER, pdf_name)
-    return send_file(pdf_path, as_attachment=True)
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))  # Use the correct Fly.io port
-    app.run(host="0.0.0.0", port=port)  # Listen on all interfaces
