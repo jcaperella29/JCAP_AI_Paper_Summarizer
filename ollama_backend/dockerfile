@@ -1,0 +1,19 @@
+# Base image
+FROM ubuntu:22.04
+
+# Install curl and dependencies
+RUN apt-get update && \
+    apt-get install -y curl ca-certificates && \
+    apt-get clean
+
+# Install Ollama
+RUN curl -fsSL https://ollama.com/install.sh | bash
+
+# Optionally preload model
+RUN ollama pull mistral
+
+# Expose Ollama API port
+EXPOSE 11434
+
+# Start the Ollama API server
+CMD ["ollama", "serve"]
