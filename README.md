@@ -25,6 +25,29 @@ Supports:
 
 ---
 
+---
+
+## 🖼️ Screenshots
+
+### 🧠 Main Interface
+
+Upload a single PDF or a batch of papers as a `.zip`:
+<p align="center">
+  <img src="screenshots/main_interface.png" alt="Main interface" width="700">
+</p>
+
+---
+
+### 📄 Batch Summary Results
+
+Each PDF is summarized in its own tab with section breakdowns:
+<p align="center">
+  <img src="screenshots/results.png" alt="Summary results with tabs" width="700">
+</p>
+
+
+
+
 ## 📦 Project Structure
 
 JCAP_AI_Paper_Summarizer/ ├── app.py # Flask app ├── requirements.txt ├── Dockerfile # Dockerfile for frontend (Flask) ├── ollama-backend/
