@@ -33,7 +33,7 @@ Supports:
 
 Upload a single PDF or a batch of papers as a `.zip`:
 <p align="center">
-  <img src="sceenshots/Main_interface.png" alt="Main interface" width="700">
+  <img src="screenshots/Main_interface.png" alt="Main interface" width="700">
 </p>
 
 ---
@@ -42,7 +42,7 @@ Upload a single PDF or a batch of papers as a `.zip`:
 
 Each PDF is summarized in its own tab with section breakdowns:
 <p align="center">
-  <img src="sceenshots/results.png" alt="Summary results with tabs" width="700">
+  <img src="screenshots/results.png" alt="Summary results with tabs" width="700">
 </p>
 
 
